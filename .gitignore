@@ -144,4 +144,8 @@ hs_err_pid*
 # Ignore all local history of files
 .history
 
+
+!lib/
+
+
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,java,visualstudiocode,git
