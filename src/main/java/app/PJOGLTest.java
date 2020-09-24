@@ -124,6 +124,7 @@ public class PJOGLTest extends PApplet {
         gl3.glDeleteShader(vertShader);
         gl3.glDeleteShader(fragShader);
 
+        dataInit();
     }
 
     boolean png = false;
@@ -157,35 +158,15 @@ public class PJOGLTest extends PApplet {
         } else {
 //            map.draw();
             shaderInit();
+
             System.out.println("map done!");
             long t0 = System.currentTimeMillis();
-            FloatBuffer vertexDataBuffer = GLBuffers.newDirectFloatBuffer(vertexData);
 
-
-            vboHandles = new int[1];
-            gl3.glGenBuffers(1, vboHandles, 0);
-
-            gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, vboHandles[0]);
-            gl3.glBufferData(GL3.GL_ARRAY_BUFFER, vertexDataBuffer.capacity() * 4, vertexDataBuffer, GL3.GL_STATIC_DRAW);
-            gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
-            vertexDataBuffer = null;
-
-            gl3.glGenVertexArrays(1, vao);
-            gl3.glBindVertexArray(vao.get(0));
-
-            gl3.glUseProgram(shaderProgram);
-
-            gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, vboHandles[0]);
-            gl3.glEnableVertexAttribArray(0);
-            gl3.glEnableVertexAttribArray(1);
-            gl3.glVertexAttribPointer(0, 2, GL3.GL_FLOAT, false, 0, 0);
-            gl3.glVertexAttribPointer(1, 2, GL3.GL_FLOAT, false, 0, 0);
-
-            System.out.println();
 
             gl3.glDrawArrays(GL3.GL_LINES, 0, vertexData.length / 2);
             gl3.glDisableVertexAttribArray(0);
             gl3.glDisableVertexAttribArray(1);
+
             System.out.println("time used: " + (System.currentTimeMillis() - t0));
             System.out.println("since buffer done: " + (System.currentTimeMillis() - bufferDone));
             if (png) {
@@ -193,6 +174,31 @@ public class PJOGLTest extends PApplet {
             }
             noLoop();
         }
+    }
+
+    public void dataInit() {
+        FloatBuffer vertexDataBuffer = GLBuffers.newDirectFloatBuffer(vertexData);
+
+        vboHandles = new int[1];
+        gl3.glGenBuffers(1, vboHandles, 0);
+
+        gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, vboHandles[0]);
+        gl3.glBufferData(GL3.GL_ARRAY_BUFFER, vertexDataBuffer.capacity() * 4, vertexDataBuffer, GL3.GL_STATIC_DRAW);
+        gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+        vertexDataBuffer = null;
+
+        gl3.glGenVertexArrays(1, vao);
+        gl3.glBindVertexArray(vao.get(0));
+
+        gl3.glUseProgram(shaderProgram);
+
+        gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, vboHandles[0]);
+        gl3.glEnableVertexAttribArray(0);
+        gl3.glEnableVertexAttribArray(1);
+        gl3.glVertexAttribPointer(0, 2, GL3.GL_FLOAT, false, 0, 0);
+        gl3.glVertexAttribPointer(1, 2, GL3.GL_FLOAT, false, 0, 0);
+
+        System.out.println();
     }
 
     TrafficMovement tm;
