@@ -37,8 +37,9 @@ public class TrafficMovement {
                 float y = scp.y;
                 if (x > 1000 || x < 0 || y < 0 || y > 800)
                     continue;
-                Vec2 tmp = new Vec2(getNormalizeX(x, 1000), getNormalizeY(y, 800));
-                new_mov.add(tmp);
+//                Vec2 tmp = new Vec2(getNormalizeX(x, 1000), getNormalizeY(y, 800));
+//                new_mov.add(tmp);
+                new_mov.add(new Vec2(x, y));
                 totalSizel++;
             }
             Vec2[] new_mov2 = new Vec2[new_mov.size()];
