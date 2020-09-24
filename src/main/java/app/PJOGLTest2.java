@@ -11,7 +11,6 @@ import model.Trajectory;
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.opengl.PJOGL;
-import util.IOHandle;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -62,15 +61,14 @@ public class PJOGLTest2 extends PApplet {
 
         tm = new TrafficMovement();
         String filePath = "C:\\LocalDocument\\LocalCode\\DBGroup\\DemoSystem\\data\\GPS\\porto_full.txt";
-        trajFull = IOHandle.loadRowData(filePath, LIMIT);
         System.out.println("begin buffer init");
         long bufferInitTime = System.currentTimeMillis();
         tm.initMetaData(filePath, LIMIT);
-        tm.movementInit(trajFull, map);
+        tm.movementInit(null, map);
         vertexData = tm.getFloatBuffer();
 
         bufferDone = System.currentTimeMillis();
-        System.out.println(">>> buffer init time (mem raw -> mem buf): "
+        System.out.println(">>> buffer init time (disk -> mem): "
                 + (bufferDone - bufferInitTime));
 
         gl3 = ((PJOGL) beginPGL()).gl.getGL3();
