@@ -26,6 +26,8 @@ public class IOHandle {
         try {
             it = FileUtils.lineIterator(new File(filePath), "UTF-8");
 
+            long loadTime = -System.currentTimeMillis();
+
             while (it.hasNext() && (limit == -1 || cnt < limit)) {
                 String line = it.nextLine();
                 String[] item = line.split(";");
@@ -46,7 +48,11 @@ public class IOHandle {
                 res.add(traj);
                 ++cnt;
             }
+
+            loadTime += System.currentTimeMillis();
+
             System.out.println("\b\b\bfinished.");
+            System.out.println(">>> data -> mem raw : " + loadTime + " ms");
 
         } catch (IOException | NoSuchElementException e) {
             System.out.println("\b\b\bfailed. \nProblem line: " + cnt);
