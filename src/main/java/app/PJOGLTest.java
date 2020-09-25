@@ -1,22 +1,21 @@
 package app;
 
-import com.jogamp.opengl.util.GLBuffers;
-
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-
 import com.jogamp.opengl.GL3;
+import com.jogamp.opengl.util.GLBuffers;
 import de.fhpotsdam.unfolding.UnfoldingMap;
 import de.fhpotsdam.unfolding.geo.Location;
 import de.fhpotsdam.unfolding.providers.MapBox;
 import de.fhpotsdam.unfolding.utils.MapUtils;
 import model.TrafficMovement;
 import model.Trajectory;
-import org.lwjgl.Sys;
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.opengl.PJOGL;
 import util.IOHandle;
+
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.List;
 
 public class PJOGLTest extends PApplet {
     private Trajectory[] trajFull;
@@ -39,6 +38,7 @@ public class PJOGLTest extends PApplet {
     IntBuffer vao = GLBuffers.newDirectIntBuffer(1);
     float[] vertexData = {};
 
+    @Override
     public void settings() {
         size(1000, 800, P2D);
         PJOGL.profile = 3;
@@ -46,6 +46,7 @@ public class PJOGLTest extends PApplet {
 
     long bufferDone = 0;
 
+    @Override
     public void setup() {
 
         //map
@@ -61,12 +62,19 @@ public class PJOGLTest extends PApplet {
         tm = new TrafficMovement();
         String filePath = "data/Porto5w.txt";
 //        String filePath = "data/porto_full.txt";
-        long bufferInitTime = System.currentTimeMillis();
-        tm.initMetaData(filePath, -1);
+
+        long t0 = System.currentTimeMillis();
+        List<String> lineList = IOHandle.readAllLines(filePath, -1);
+
+        long t1 = System.currentTimeMillis();
+        trajFull = tm.lineStrToTraj(lineList);
         tm.movementInit(trajFull, map);
         vertexData = tm.getFloatBuffer();
+
         bufferDone = System.currentTimeMillis();
-        System.out.println("buffer init time: " + (bufferDone - bufferInitTime));
+
+        System.out.println("disk -> mem : " + (t1 - t0));
+        System.out.println("buffer init time: " + (bufferDone - t1));
 
         gl3 = ((PJOGL) beginPGL()).gl.getGL3();
         endPGL();//?
@@ -137,6 +145,7 @@ public class PJOGLTest extends PApplet {
     }
 
 
+    @Override
     public void draw() {
 //        map.draw();
         if (checkLevel != map.getZoomLevel() || !checkCenter.equals(map.getCenter())) {

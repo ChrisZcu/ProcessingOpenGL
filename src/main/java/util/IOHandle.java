@@ -5,8 +5,7 @@ import model.Trajectory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -66,4 +65,42 @@ public class IOHandle {
         return res.toArray(new Trajectory[0]);
     }
 
+    /**
+     * Read all line into a list.
+     * @param limit the max line when reading. -1 means read all.
+     */
+    public static List<String> readAllLines(String filePath, int limit) {
+        // set initial capacity if the limit is set.
+        List<String> res = (limit == -1) ? new ArrayList<>() : new ArrayList<>(limit);
+        LineIterator it = null;
+        int cnt = 0;
+
+        System.out.print("Read raw string data from " + filePath + " ...");
+
+        try {
+            it = FileUtils.lineIterator(new File(filePath), "UTF-8");
+
+            long loadTime = -System.currentTimeMillis();
+
+            while (it.hasNext() && (limit == -1 || cnt < limit)) {
+                res.add(it.nextLine());
+                ++cnt;
+            }
+
+            loadTime += System.currentTimeMillis();
+
+            System.out.println("\b\b\bfinished. size: " + res.size());
+            System.out.println("Load to mem time : " + loadTime);
+
+        } catch (IOException | NoSuchElementException e) {
+            System.out.println("\b\b\bfailed. \nProblem line: " + cnt);
+            e.printStackTrace();
+        } finally {
+            if (it != null) {
+                LineIterator.closeQuietly(it);
+            }
+        }
+
+        return res;
+    }
 }

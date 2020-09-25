@@ -17,7 +17,12 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.List;
 
-public class PJOGLTest2 extends PApplet {
+/**
+ * Test the resize algorithm
+ */
+public class PJOGLTest3 extends PApplet {
+    public static final String DATA_PATH
+            = "C:\\LocalDocument\\LocalCode\\DBGroup\\DemoSystem\\data\\GPS\\porto_full.txt";
     public static final int LIMIT = 5_0000;
 
     private Trajectory[] trajFull;
@@ -50,7 +55,6 @@ public class PJOGLTest2 extends PApplet {
 
     @Override
     public void setup() {
-
         //map
         String WHITE_MAP_PATH = "https://api.mapbox.com/styles/v1/pacemaker-yc/ck4gqnid305z61cp1dtvmqh5y/tiles/512/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoicGFjZW1ha2VyLXljIiwiYSI6ImNrNGdxazl1aTBsNDAzZW41MDhldmQyancifQ.WPAckWszPCEHWlyNmJfY0A";
 
@@ -62,31 +66,35 @@ public class PJOGLTest2 extends PApplet {
         MapUtils.createDefaultEventDispatcher(this, map);
 
         tm = new TrafficMovement();
-        String filePath = "data/Porto5w.txt";
-//        String filePath = "data/porto_full.txt";
 
         long t0 = System.currentTimeMillis();
-        List<String> lineList = IOHandle.readAllLines(filePath, -1);
-
+        List<String> lineList = IOHandle.readAllLines(DATA_PATH, LIMIT);
         long t1 = System.currentTimeMillis();
         trajFull = tm.lineStrToTraj(lineList);
+        long t2 = System.currentTimeMillis();
         tm.movementInit(trajFull, map);
+        long t3 = System.currentTimeMillis();
         vertexData = tm.getFloatBuffer();
 
         bufferDone = System.currentTimeMillis();
 
-        System.out.println("disk -> mem : " + (t1 - t0));
-        System.out.println("buffer init time: " + (bufferDone - t1));
+        System.out.println("\ndisk -> mem : " + (t1 - t0));
+        System.out.println("str -> gps point : " + (t2 - t1));
+        System.out.println("gps point -> screen point : " + (t3 - t2));
+        System.out.println("screen point -> buffer : " + (bufferDone - t3));
 
         gl3 = ((PJOGL) beginPGL()).gl.getGL3();
         endPGL();//?
+    }
 
+    private void shaderInit() {
         // initializeProgram
+
         shaderProgram = gl3.glCreateProgram();
 
         fragShader = gl3.glCreateShader(GL3.GL_FRAGMENT_SHADER);
         gl3.glShaderSource(fragShader, 1,
-                new String[]{   // 决定颜色
+                new String[]{
                         "#ifdef GL_ES\n" +
                                 "precision mediump float;\n" +
                                 "precision mediump int;\n" +
@@ -95,32 +103,28 @@ public class PJOGLTest2 extends PApplet {
                                 "varying vec4 vertColor;\n" +
                                 "\n" +
                                 "void main() {\n" +
-                                "  gl_FragColor = vertColor;\n" +
+                                "  gl_FragColor = vec4(1.0,0.0,0.0,1.0);\n" +
                                 "}"
                 }, null);
         gl3.glCompileShader(fragShader);
 
         vertShader = gl3.glCreateShader(GL3.GL_VERTEX_SHADER);
         gl3.glShaderSource(vertShader, 1,
-                new String[]{//序列化
+                new String[]{
                         "#version 330 \n"
                                 + "layout (location = 0) in vec4 position;"
                                 + "layout (location = 1) in vec4 color;"
                                 + "smooth out vec4 theColor;"
-                                + "void main(){"
-                                + "gl_Position = position;"
+                                + "void main() {"
+                                + "mat4 m4 = mat4(1,0,0,0,  0,1,0,0,  0,0,1,0,  -0.4,0,0,1);"
+                                + "gl_Position.x = position.x / 500.0 - 1;"
+                                + "gl_Position.y = -1 * position.y / 400.0 + 1;"
                                 + "theColor = color;"
                                 + "}"
                 }, null);
         gl3.glCompileShader(vertShader);
+        gl3.glGetAttribLocation(vertShader, "");
 
-
-//        int[] compiled = new int[1];
-
-        // Check compile status fragShader
-//        gl3.glGetShaderiv(fragShader, GL3.GL_COMPILE_STATUS, compiled, 0);
-//        // Check compile status vertShader
-//        gl3.glGetShaderiv(vertShader, GL3.GL_COMPILE_STATUS, compiled, 0);
 
         // attach and link
         gl3.glAttachShader(shaderProgram, vertShader);
@@ -130,10 +134,6 @@ public class PJOGLTest2 extends PApplet {
         // program compiled we can free the object
         gl3.glDeleteShader(vertShader);
         gl3.glDeleteShader(fragShader);
-
-// set up vertex Data to display
-
-        // initializeVertexBuffer
 
     }
 
@@ -156,7 +156,7 @@ public class PJOGLTest2 extends PApplet {
             checkLevel = map.getZoomLevel();
             checkCenter = map.getCenter();
         }
-        if (!totalLoad) {
+        if (totalLoad) {
             if (!map.allTilesLoaded()) {
                 if (mapImage == null) {
                     mapImage = map.mapDisplay.getInnerPG().get();
@@ -168,9 +168,10 @@ public class PJOGLTest2 extends PApplet {
             map.draw();
         } else {
 //            map.draw();
-            System.out.println("map done!");
+            shaderInit();
             long t0 = System.currentTimeMillis();
             FloatBuffer vertexDataBuffer = GLBuffers.newDirectFloatBuffer(vertexData);
+
 
             vboHandles = new int[1];
             gl3.glGenBuffers(1, vboHandles, 0);
@@ -199,12 +200,14 @@ public class PJOGLTest2 extends PApplet {
 
             long t2 = System.currentTimeMillis();
 
-            System.out.println(">>> mem buf -> gpu mem : " + (t1 - t0));
-            System.out.println(">>> rendering : " + (t2 - t1));
-            System.out.println("since buffer done: " + (System.currentTimeMillis() - bufferDone));
+            System.out.println("mem buf -> gpu mem : " + (t1 - t0));
+            System.out.println("rendering : " + (t2 - t1));
+            System.out.println("\nsince buffer done: " + (System.currentTimeMillis() - bufferDone));
             if (png) {
                 saveFrame("data/test.png");
             }
+
+            exit();
             noLoop();
         }
     }
@@ -212,6 +215,7 @@ public class PJOGLTest2 extends PApplet {
     TrafficMovement tm;
 
     public static void main(String[] args) {
-        PApplet.main(new String[]{PJOGLTest2.class.getName()});
+        PApplet.main(new String[]{PJOGLTest3.class.getName()});
+
     }
 }
