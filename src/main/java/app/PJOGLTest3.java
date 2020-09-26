@@ -23,7 +23,7 @@ import java.util.List;
 public class PJOGLTest3 extends PApplet {
     public static final String DATA_PATH
             = "C:\\LocalDocument\\LocalCode\\DBGroup\\DemoSystem\\data\\GPS\\porto_full.txt";
-    public static final int LIMIT = -1;
+    public static final int LIMIT = 1000;
 
     private Trajectory[] trajFull;
     GL3 gl3;
@@ -78,10 +78,10 @@ public class PJOGLTest3 extends PApplet {
 
         bufferDone = System.currentTimeMillis();
 
-        System.out.println("\ndisk -> mem : " + (t1 - t0));
-        System.out.println("str -> gps point : " + (t2 - t1));
-        System.out.println("gps point -> screen point : " + (t3 - t2));
-        System.out.println("screen point -> buffer : " + (bufferDone - t3));
+        System.out.println("\ndisk -> mem, " + (t1 - t0));
+        System.out.println("str -> gps point, " + (t2 - t1));
+        System.out.println("gps point -> screen point, " + (t3 - t2));
+        System.out.println("screen point -> buffer, " + (bufferDone - t3));
 
         gl3 = ((PJOGL) beginPGL()).gl.getGL3();
         endPGL();//?
@@ -95,13 +95,7 @@ public class PJOGLTest3 extends PApplet {
         fragShader = gl3.glCreateShader(GL3.GL_FRAGMENT_SHADER);
         gl3.glShaderSource(fragShader, 1,
                 new String[]{
-                        "#ifdef GL_ES\n" +
-                                "precision mediump float;\n" +
-                                "precision mediump int;\n" +
-                                "#endif\n" +
-                                "\n" +
-                                "varying vec4 vertColor;\n" +
-                                "\n" +
+                        "#version 330 core\n" +
                                 "void main() {\n" +
                                 "  gl_FragColor = vec4(1.0,0.0,0.0,1.0);\n" +
                                 "}"
@@ -111,19 +105,14 @@ public class PJOGLTest3 extends PApplet {
         vertShader = gl3.glCreateShader(GL3.GL_VERTEX_SHADER);
         gl3.glShaderSource(vertShader, 1,
                 new String[]{
-                        "#version 330 \n"
+                        "#version 330 core\n"
                                 + "layout (location = 0) in vec4 position;"
-                                + "layout (location = 1) in vec4 color;"
-                                + "smooth out vec4 theColor;"
                                 + "void main() {"
-                                + "mat4 m4 = mat4(1,0,0,0,  0,1,0,0,  0,0,1,0,  -0.4,0,0,1);"
                                 + "gl_Position.x = position.x / 500.0 - 1;"
                                 + "gl_Position.y = -1 * position.y / 400.0 + 1;"
-                                + "theColor = color;"
                                 + "}"
                 }, null);
         gl3.glCompileShader(vertShader);
-        gl3.glGetAttribLocation(vertShader, "");
 
 
         // attach and link
@@ -134,7 +123,6 @@ public class PJOGLTest3 extends PApplet {
         // program compiled we can free the object
         gl3.glDeleteShader(vertShader);
         gl3.glDeleteShader(fragShader);
-
     }
 
     boolean png = false;
@@ -178,7 +166,7 @@ public class PJOGLTest3 extends PApplet {
 
             gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, vboHandles[0]);
             gl3.glBufferData(GL3.GL_ARRAY_BUFFER, vertexDataBuffer.capacity() * 4, vertexDataBuffer, GL3.GL_STATIC_DRAW);
-            gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+//            gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
             vertexDataBuffer = null;
 
             gl3.glGenVertexArrays(1, vao);
@@ -200,9 +188,9 @@ public class PJOGLTest3 extends PApplet {
 
             long t2 = System.currentTimeMillis();
 
-            System.out.println("mem buf -> gpu mem : " + (t1 - t0));
-            System.out.println("rendering : " + (t2 - t1));
-            System.out.println("\nsince buffer done: " + (System.currentTimeMillis() - bufferDone));
+            System.out.println("mem buf -> gpu mem, " + (t1 - t0));
+            System.out.println("rendering, " + (t2 - t1));
+            System.out.println("\nsince buffer done : " + (System.currentTimeMillis() - bufferDone));
             if (png) {
                 saveFrame("data/test.png");
             }
@@ -215,6 +203,5 @@ public class PJOGLTest3 extends PApplet {
 
     public static void main(String[] args) {
         PApplet.main(new String[]{PJOGLTest3.class.getName()});
-
     }
 }
