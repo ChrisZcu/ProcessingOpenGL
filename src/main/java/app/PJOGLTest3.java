@@ -23,7 +23,7 @@ import java.util.List;
 public class PJOGLTest3 extends PApplet {
     public static final String DATA_PATH
             = "C:\\LocalDocument\\LocalCode\\DBGroup\\DemoSystem\\data\\GPS\\porto_full.txt";
-    public static final int LIMIT = 5_0000;
+    public static final int LIMIT = -1;
 
     private Trajectory[] trajFull;
     GL3 gl3;
@@ -207,7 +207,6 @@ public class PJOGLTest3 extends PApplet {
                 saveFrame("data/test.png");
             }
 
-            exit();
             noLoop();
         }
     }
